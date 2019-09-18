@@ -7,64 +7,134 @@ Dataset: Electric power consumption [20Mb]
 Description: Measurements of electric power consumption in one household with a one-minute sampling rate over a period of almost 4 years. Different electrical quantities and some sub-metering values are available.
 The following descriptions of the 9 variables in the dataset are taken from the UCI web site:
 
-Date: Date in format dd/mm/yyyy
-Time: time in format hh:mm:ss
-Global_active_power: household global minute-averaged active power (in kilowatt)
-Global_reactive_power: household global minute-averaged reactive power (in kilowatt)
-Voltage: minute-averaged voltage (in volt)
-Global_intensity: household global minute-averaged current intensity (in ampere)
-Sub_metering_1: energy sub-metering No. 1 (in watt-hour of active energy). It corresponds to the kitchen, containing mainly a dishwasher, an oven and a microwave (hot plates are not electric but gas powered).
-Sub_metering_2: energy sub-metering No. 2 (in watt-hour of active energy). It corresponds to the laundry room, containing a washing-machine, a tumble-drier, a refrigerator and a light.
-Sub_metering_3: energy sub-metering No. 3 (in watt-hour of active energy). It corresponds to an electric water-heater and an air-conditioner.
-Review criterialess 
-Criteria
+library("data.table")
 
-Was a valid GitHub URL containing a git repository submitted?
-Does the GitHub repository contain at least one commit beyond the original fork?
-Please examine the plot files in the GitHub repository. Do the plot files appear to be of the correct graphics file format?
-Does each plot appear correct?
-Does each set of R code appear to create the reference plot?
-Reviewing the Assignments
+setwd("~/Desktop/datasciencecoursera/4_Exploratory_Data_Analysis/project/data")
 
-Keep in mind this course is about exploratory graphs, understanding the data, and developing strategies. Here's a good quote from a swirl lesson about exploratory graphs: "They help us find patterns in data and understand its properties. They suggest modeling strategies and help to debug analyses. We DON'T use exploratory graphs to communicate results."
+#Reads in data from file then subsets data for specified dates
+powerDT <- data.table::fread(input = "household_power_consumption.txt"
+                             , na.strings="?"
+                             )
 
-The rubrics should always be interpreted in that context.
+# Prevents histogram from printing in scientific notation
+powerDT[, Global_active_power := lapply(.SD, as.numeric), .SDcols = c("Global_active_power")]
 
-As you do your evaluation, please keep an open mind and focus on the positive. The goal is not to deduct points over small deviations from the requirements or for legitimate differences in implementation styles, etc. Look for ways to give points when it's clear that the submitter has given a good faith effort to do the project, and when it's likely that they've succeeded. Most importantly, it's okay if a person did something differently from the way that you did it. The point is not to see if someone managed to match your way of doing things, but to see if someone objectively accomplished the task at hand.
+# Change Date Column to Date Type
+powerDT[, Date := lapply(.SD, as.Date, "%d/%m/%Y"), .SDcols = c("Date")]
 
-To that end, keep the following things in mind:
+# Filter Dates for 2007-02-01 and 2007-02-02
+powerDT <- powerDT[(Date >= "2007-02-01") & (Date <= "2007-02-02")]
 
-DO
+png("plot1.png", width=480, height=480)
 
-Review the source code.
-Keep an open mind and focus on the positive.≤/li>
-When in doubt, err on the side of giving too many points, rather than giving too few.
-Ask yourself if a plot might answer a question for the person who created it.
-Remember that not everyone has the same statistical background and knowledge.
-DON'T:
+## Plot 1
+hist(powerDT[, Global_active_power], main="Global Active Power", 
+     xlab="Global Active Power (kilowatts)", ylab="Frequency", col="Red")
 
-Deduct just because you disagree with someone's statistical methods.
-Deduct just because you disagree with someone's plotting methods.
-Deduct based on aesthetics.
-Loading the dataless 
-When loading the dataset into R, please consider the following:
+dev.off()
 
-The dataset has 2,075,259 rows and 9 columns. First calculate a rough estimate of how much memory the dataset will require in memory before reading into R. Make sure your computer has enough memory (most modern computers should be fine).
-We will only be using data from the dates 2007-02-01 and 2007-02-02. One alternative is to read the data from just those dates rather than reading in the entire dataset and subsetting to those dates.
-You may find it useful to convert the Date and Time variables to Date/Time classes in R using the \color{red}{\verb|strptime()|}strptime()  and \color{red}{\verb|as.Date()|}as.Date() functions.
-Note that in this dataset missing values are coded as \color{red}{\verb|?|}?.
-Making Plotsless 
-Our overall goal here is simply to examine how household energy usage varies over a 2-day period in February, 2007. Your task is to reconstruct the following plots below, all of which were constructed using the base plotting system.
 
-First you will need to fork and clone the following GitHub repository: https://github.com/rdpeng/ExData_Plotting1
+library("data.table")
 
-For each plot you should
+setwd("~/Desktop/datasciencecoursera/4_Exploratory_Data_Analysis/project/data")
 
-Construct the plot and save it to a PNG file with a width of 480 pixels and a height of 480 pixels.
-Name each of the plot files as \color{red}{\verb|plot1.png|}plot1.png, \color{red}{\verb|plot2.png|}plot2.png, etc.
-Create a separate R code file (\color{red}{\verb|plot1.R|}plot1.R, \color{red}{\verb|plot2.R|}plot2.R, etc.) that constructs the corresponding plot, i.e. code in \color{red}{\verb|plot1.R|}plot1.R constructs the \color{red}{\verb|plot1.png|}plot1.png plot. Your code file should include code for reading the data so that the plot can be fully reproduced. You must also include the code that creates the PNG file.
-Add the PNG file and R code file to the top-level folder of your git repository (no need for separate sub-folders)
-When you are finished with the assignment, push your git repository to GitHub so that the GitHub version of your repository is up to date. There should be four PNG files and four R code files, a total of eight files in the top-level folder of the repo.
+#Reads in data from file then subsets data for specified dates
+powerDT <- data.table::fread(input = "household_power_consumption.txt"
+                             , na.strings="?"
+)
 
+# Prevents Scientific Notation
+powerDT[, Global_active_power := lapply(.SD, as.numeric), .SDcols = c("Global_active_power")]
+
+# Making a POSIXct date capable of being filtered and graphed by time of day
+powerDT[, dateTime := as.POSIXct(paste(Date, Time), format = "%d/%m/%Y %H:%M:%S")]
+
+# Filter Dates for 2007-02-01 and 2007-02-02
+powerDT <- powerDT[(dateTime >= "2007-02-01") & (dateTime < "2007-02-03")]
+
+png("plot2.png", width=480, height=480)
+
+## Plot 2
+plot(x = powerDT[, dateTime]
+     , y = powerDT[, Global_active_power]
+     , type="l", xlab="", ylab="Global Active Power (kilowatts)")
+
+dev.off()
+
+
+library("data.table")
+
+setwd("~/Desktop/datasciencecoursera/4_Exploratory_Data_Analysis/project/data")
+
+#Reads in data from file then subsets data for specified dates
+powerDT <- data.table::fread(input = "household_power_consumption.txt"
+                             , na.strings="?"
+)
+
+# Prevents Scientific Notation
+powerDT[, Global_active_power := lapply(.SD, as.numeric), .SDcols = c("Global_active_power")]
+
+# Making a POSIXct date capable of being filtered and graphed by time of day
+powerDT[, dateTime := as.POSIXct(paste(Date, Time), format = "%d/%m/%Y %H:%M:%S")]
+
+# Filter Dates for 2007-02-01 and 2007-02-02
+powerDT <- powerDT[(dateTime >= "2007-02-01") & (dateTime < "2007-02-03")]
+
+png("plot3.png", width=480, height=480)
+
+# Plot 3
+plot(powerDT[, dateTime], powerDT[, Sub_metering_1], type="l", xlab="", ylab="Energy sub metering")
+lines(powerDT[, dateTime], powerDT[, Sub_metering_2],col="red")
+lines(powerDT[, dateTime], powerDT[, Sub_metering_3],col="blue")
+legend("topright"
+       , col=c("black","red","blue")
+       , c("Sub_metering_1  ","Sub_metering_2  ", "Sub_metering_3  ")
+       ,lty=c(1,1), lwd=c(1,1))
+
+dev.off()
+
+
+library("data.table")
+
+setwd("~/Desktop/datasciencecoursera/4_Exploratory_Data_Analysis/project/data")
+
+#Reads in data from file then subsets data for specified dates
+powerDT <- data.table::fread(input = "household_power_consumption.txt"
+                             , na.strings="?"
+)
+
+# Prevents Scientific Notation
+powerDT[, Global_active_power := lapply(.SD, as.numeric), .SDcols = c("Global_active_power")]
+
+# Making a POSIXct date capable of being filtered and graphed by time of day
+powerDT[, dateTime := as.POSIXct(paste(Date, Time), format = "%d/%m/%Y %H:%M:%S")]
+
+# Filter Dates for 2007-02-01 and 2007-02-02
+powerDT <- powerDT[(dateTime >= "2007-02-01") & (dateTime < "2007-02-03")]
+
+png("plot4.png", width=480, height=480)
+
+par(mfrow=c(2,2))
+
+# Plot 1
+plot(powerDT[, dateTime], powerDT[, Global_active_power], type="l", xlab="", ylab="Global Active Power")
+
+# Plot 2
+plot(powerDT[, dateTime],powerDT[, Voltage], type="l", xlab="datetime", ylab="Voltage")
+
+# Plot 3
+plot(powerDT[, dateTime], powerDT[, Sub_metering_1], type="l", xlab="", ylab="Energy sub metering")
+lines(powerDT[, dateTime], powerDT[, Sub_metering_2], col="red")
+lines(powerDT[, dateTime], powerDT[, Sub_metering_3],col="blue")
+legend("topright", col=c("black","red","blue")
+       , c("Sub_metering_1  ","Sub_metering_2  ", "Sub_metering_3  ")
+       , lty=c(1,1)
+       , bty="n"
+       , cex=.5) 
+
+# Plot 4
+plot(powerDT[, dateTime], powerDT[,Global_reactive_power], type="l", xlab="datetime", ylab="Global_reactive_power")
+
+dev.off()
 
 
